@@ -1,232 +1,254 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>HiveBuilds — Projects on the Hive Blockchain</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="src/style.css">
-
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HiveBuilds — Projects on the Hive Blockchain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
-<canvas id="bg-canvas"></canvas>
-<div class="page">
+  <canvas id="bg-canvas"></canvas>
+  <div class="page">
 
-<!-- NAV -->
-<nav>
-  <div class="nav-logo">
-    <div class="logo-icon">&#x1F41D;</div>
-    Hive<span>Builds</span>
-  </div>
-  <div class="nav-spacer"></div>
-  <div class="nav-search">
-    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-    <input type="text" id="search-input" placeholder="Search projects&hellip;"/>
-  </div>
-  <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode" onclick="toggleTheme()">&#x1F319;</button>
-  <div id="auth-area">
-    <button class="btn btn-ghost" onclick="openLoginModal()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-      Login with Keychain
-    </button>
-  </div>
-</nav>
-
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-eyebrow"><span class="dot"></span> Powered by Hive Blockchain</div>
-  <h1>Discover projects<br/>built on <em>Hive</em></h1>
-  <p>An open directory of apps, tools, and libraries created by the Hive community &mdash; submitted and verified on-chain.</p>
-  <div class="hero-actions">
-    <button class="btn btn-teal" onclick="handleSubmitClick()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Submit Project
-    </button>
-    <button class="btn btn-ghost" onclick="document.getElementById('projects-section').scrollIntoView({behavior:'smooth'})">Browse All</button>
-  </div>
-</div>
-
-<!-- STATS -->
-<div class="stats-bar">
-  <div class="stat"><div class="stat-num" id="stat-projects">&mdash;</div><div class="stat-label">Projects</div></div>
-  <div class="stat"><div class="stat-num" id="stat-contributors">&mdash;</div><div class="stat-label">Contributors</div></div>
-  <div class="stat"><div class="stat-num" id="stat-categories">9</div><div class="stat-label">Categories</div></div>
-</div>
-
-<!-- PROJECTS -->
-<div class="main" id="projects-section">
-  <div class="filter-bar">
-    <span class="filter-label">Filter</span>
-    <div class="filter-tags" id="filter-tags">
-      <button class="tag-btn active" data-cat="all">All</button>
-      <button class="tag-btn" data-cat="frontend">FrontEnd</button>
-      <button class="tag-btn" data-cat="dapp">dApp</button>
-      <button class="tag-btn" data-cat="tool">Tool</button>
-      <button class="tag-btn" data-cat="wallet">Wallet</button>
-      <button class="tag-btn" data-cat="game">Game</button>
-      <button class="tag-btn" data-cat="defi">DeFi</button>
-      <button class="tag-btn" data-cat="nft">NFT</button>
-      <button class="tag-btn" data-cat="social">Social</button>
-      <button class="tag-btn" data-cat="lib">Library</button>
-      <button class="tag-btn" data-cat="other">Other</button>
-    </div>
-    <select class="sort-select" id="sort-select">
-      <option value="newest">Newest first</option>
-      <option value="oldest">Oldest first</option>
-      <option value="name">Name A&ndash;Z</option>
-    </select>
-  </div>
-  <div class="projects-grid" id="projects-grid">
-    <div class="loader"><div class="spinner"></div> Loading on-chain projects&hellip;</div>
-  </div>
-  <div class="pagination" id="pagination" style="display:none">
-    <button class="btn btn-ghost btn-sm" id="prev-btn" onclick="loadPrevPage()" disabled>&larr; Older</button>
-    <span class="page-info" id="page-info"></span>
-    <button class="btn btn-ghost btn-sm" id="next-btn" onclick="loadNextPage()">Newer &rarr;</button>
-  </div>
-</div>
-
-<footer>
-  <p>HiveBuilds &mdash; An open community directory on the <a href="https://hive.io" target="_blank" rel="noopener noreferrer">Hive blockchain</a>. All project data is stored on-chain via Custom JSON.</p>
-  <p style="margin-top:8px">Built with &#x2764;&#xFE0F; for the Hive community</p>
-</footer>
-</div><!-- /page -->
-
-<!-- ═══════════ MODALS ═══════════ -->
-
-<!-- Login Modal -->
-<div class="modal-overlay" id="login-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">Login with Hive Keychain</span>
-      <button class="modal-close" onclick="closeModal('login-modal')">&#xD7;</button>
-    </div>
-    <div class="modal-body">
-      <div class="notice">
-        <span class="notice-icon">&#x1F510;</span>
-        <div>Your private key never leaves your device. Hive Keychain signs all transactions locally in your browser extension.</div>
+    <nav>
+      <div class="nav-logo">
+        <div class="logo-icon">&#x1F41D;</div>
+        Hive<span>Builds</span>
       </div>
-      <div id="keychain-check-msg" class="notice error-notice" style="display:none">
-        <span class="notice-icon">&#x26A0;&#xFE0F;</span>
-        <div>Hive Keychain extension not detected. <a href="https://hive-keychain.com" target="_blank" rel="noopener noreferrer" style="color:var(--red);text-decoration:underline">Install it here</a>, then reload the page.</div>
+      <div class="nav-spacer"></div>
+      <div class="nav-search">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="search-input" placeholder="Search projects&hellip;"/>
       </div>
-      <div class="form-group">
-        <label class="form-label">Hive Username</label>
-        <input type="text" id="login-username" placeholder="yourusername" autocomplete="off" maxlength="16"/>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-ghost" onclick="closeModal('login-modal')">Cancel</button>
-        <button class="btn btn-primary" onclick="doLogin()">
+      <button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode" onclick="toggleTheme()">&#x1F319;</button>
+      <div id="auth-area">
+        <button class="btn btn-ghost" onclick="openLoginModal()">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Sign with Keychain
+          Login with Keychain
         </button>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <div class="hero-eyebrow"><span class="dot"></span> Powered by Hive Blockchain</div>
+      <h1>Discover projects<br/>built on <em>Hive</em></h1>
+      <p>An open directory of apps, tools, and libraries created by the Hive community &mdash; submitted and verified on-chain.</p>
+      <div class="hero-actions">
+        <button class="btn btn-teal nav-submit-btn" onclick="handleSubmitClick()" title="Submit Project">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span class="btn-text-desktop">Submit Project</span>
+          <span class="btn-text-mobile">Submit</span>
+        </button>
+        <button class="btn btn-ghost" onclick="document.getElementById('projects-section').scrollIntoView({behavior:'smooth'})">Browse All</button>
+      </div>
+    </div>
+
+    <div class="stats-bar">
+      <div class="stat"><div class="stat-num" id="stat-projects">&mdash;</div><div class="stat-label">Projects</div></div>
+      <div class="stat"><div class="stat-num" id="stat-contributors">&mdash;</div><div class="stat-label">Contributors</div></div>
+      <div class="stat"><div class="stat-num" id="stat-categories">9</div><div class="stat-label">Categories</div></div>
+    </div>
+
+    <div class="main" id="projects-section">
+      <div class="filter-bar">
+        <span class="filter-label">Filter</span>
+        <div class="filter-tags" id="filter-tags">
+          <button class="tag-btn active" data-cat="all">All</button>
+          <button class="tag-btn" data-cat="bridge">Bridge</button>
+          <button class="tag-btn" data-cat="exchange">Exchange</button>
+          <button class="tag-btn" data-cat="frontend">FrontEnd</button>
+          <button class="tag-btn" data-cat="dapp">dApp</button>
+          <button class="tag-btn" data-cat="docs">Docs</button>
+          <button class="tag-btn" data-cat="tool">Tool</button>
+          <button class="tag-btn" data-cat="wallet">Wallet</button>
+          <button class="tag-btn" data-cat="game">Game</button>
+          <button class="tag-btn" data-cat="defi">DeFi</button>
+          <button class="tag-btn" data-cat="nft">NFT</button>
+          <button class="tag-btn" data-cat="search">Search</button>
+          <button class="tag-btn" data-cat="social">Social</button>
+          <button class="tag-btn" data-cat="lib">Library</button>
+          <button class="tag-btn" data-cat="other">Other</button>
+        </div>
+        <select class="sort-select" id="sort-select">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="name">Name A&ndash;Z</option>
+        </select>
+      </div>
+      
+      <div class="projects-grid" id="projects-grid">
+        <div class="loader"><div class="spinner"></div> Loading on-chain projects&hellip;</div>
+      </div>
+      
+      <div class="pagination" id="pagination" style="display:none">
+        <button class="btn btn-ghost btn-sm" id="prev-btn" onclick="loadPrevPage()" disabled>&larr; Older</button>
+        <span class="page-info" id="page-info"></span>
+        <button class="btn btn-ghost btn-sm" id="next-btn" onclick="loadNextPage()">Newer &rarr;</button>
+      </div>
+    </div>
+
+    <footer>
+      <p>HiveBuilds &mdash; An open community directory on the <a href="https://hive.io" target="_blank" rel="noopener noreferrer">Hive blockchain</a>. All project data is stored on-chain via Custom JSON.</p>
+      <p style="margin-top:8px">Built with &#x2764;&#xFE0F; for the Hive community</p>
+    </footer>
+  </div><div class="modal-overlay" id="login-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Login with Hive Keychain</span>
+        <button class="modal-close" onclick="closeModal('login-modal')">&#xD7;</button>
+      </div>
+      <div class="modal-body">
+        <div class="notice">
+          <span class="notice-icon">&#x1F510;</span>
+          <div>Your private key never leaves your device. Hive Keychain signs all transactions locally in your browser extension.</div>
+        </div>
+        <div id="keychain-check-msg" class="notice error-notice" style="display:none">
+          <span class="notice-icon">&#x26A0;&#xFE0F;</span>
+          <div>Hive Keychain extension not detected. <a href="https://hive-keychain.com" target="_blank" rel="noopener noreferrer" style="color:var(--red);text-decoration:underline">Install it here</a>, then reload the page.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hive Username</label>
+          <input type="text" id="login-username" placeholder="yourusername" autocomplete="off" maxlength="16"/>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="closeModal('login-modal')">Cancel</button>
+          <button class="btn btn-primary" onclick="doLogin()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+            Sign with Keychain
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Submit Modal -->
-<div class="modal-overlay" id="submit-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <span class="modal-title">Submit a Project</span>
-      <button class="modal-close" onclick="closeModal('submit-modal')">&#xD7;</button>
-    </div>
-    <div class="modal-body">
-      <div class="notice">
-        <span class="notice-icon">&#x26D3;&#xFE0F;</span>
-        <div>This will be broadcast as a Custom JSON transaction signed by your Hive account and permanently stored on-chain.</div>
+  <div class="modal-overlay" id="submit-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Submit a Project</span>
+        <button class="modal-close" onclick="closeModal('submit-modal')">&#xD7;</button>
       </div>
-      <div id="submit-error" class="notice error-notice" style="display:none"></div>
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Project Name *</label>
-          <input type="text" id="f-name" placeholder="My Awesome Project" maxlength="80"/>
+      <div class="modal-body">
+        <div class="notice">
+          <span class="notice-icon">&#x26D3;&#xFE0F;</span>
+          <div>This will be broadcast as a Custom JSON transaction signed by your Hive account and permanently stored on-chain.</div>
         </div>
-        <div class="form-group">
-          <label class="form-label">Emoji Icon</label>
-          <input type="text" id="f-icon" placeholder="&#x1F680;" maxlength="4"/>
+        <div id="submit-error" class="notice error-notice" style="display:none"></div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Project Name *</label>
+            <input type="text" id="f-name" placeholder="My Awesome Project" maxlength="80"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Emoji Icon</label>
+            <input type="text" id="f-icon" placeholder="&#x1F680;" maxlength="4"/>
+          </div>
         </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Short Description * &nbsp;<span class="form-hint" id="desc-count">(0/160)</span></label>
-        <input type="text" id="f-desc" placeholder="What does your project do?" maxlength="160"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Full Description</label>
-        <textarea id="f-fulldesc" rows="3" placeholder="More details, features, history&hellip;" maxlength="800" style="resize:vertical"></textarea>
-      </div>
-      <div class="form-row">
+        
         <div class="form-group">
-          <label class="form-label">Category *</label>
-          <select id="f-cat">
-            <option value="">Select category&hellip;</option>
-            <option value="frontend">FrontEnd</option>
-            <option value="dapp">dApp</option>
-            <option value="tool">Tool</option>
-            <option value="wallet">Wallet</option>
-            <option value="game">Game</option>
-            <option value="defi">DeFi</option>
-            <option value="nft">NFT</option>
-            <option value="social">Social</option>
-            <option value="lib">Library</option>
-            <option value="other">Other</option>
-          </select>
+          <label class="form-label">Short Description * &nbsp;<span class="form-hint" id="desc-count">(0/160)</span></label>
+          <input type="text" id="f-desc" placeholder="What does your project do?" maxlength="160"/>
         </div>
+        
         <div class="form-group">
-          <label class="form-label">Status</label>
-          <select id="f-status">
-            <option value="live">Live</option>
-            <option value="beta">Beta</option>
-            <option value="dev">In Development</option>
-            <option value="deprecated">Deprecated</option>
-          </select>
+          <label class="form-label">Full Description</label>
+          <textarea id="f-fulldesc" rows="3" placeholder="More details, features, history&hellip;" maxlength="800" style="resize:vertical"></textarea>
         </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Website URL</label>
-        <input type="url" id="f-url" placeholder="https://&hellip;"/>
-      </div>
-      <div class="form-row">
+        
         <div class="form-group">
-          <label class="form-label">GitHub</label>
-          <input type="url" id="f-github" placeholder="https://github.com/&hellip;"/>
+          <label class="form-label">Logo URL <span class="form-hint">(Link da imagem HTTP/HTTPS)</span></label>
+          <input type="text" id="f-logo" placeholder="https://images.hive.blog/.../logo.png"/>
         </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select id="f-cat">
+              <option value="">Select category&hellip;</option>
+              <option value="bridge">Bridge</option>
+              <option value="exchange">Exchange</option>
+              <option value="frontend">FrontEnd</option>
+              <option value="dapp">dApp</option>
+              <option value="docs">Docs</option>
+              <option value="tool">Tool</option>
+              <option value="wallet">Wallet</option>
+              <option value="game">Game</option>
+              <option value="defi">DeFi</option>
+              <option value="nft">NFT</option>
+              <option value="search">Search</option>
+              <option value="social">Social</option>
+              <option value="lib">Library</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status</label>
+            <select id="f-status">
+              <option value="live">Live</option>
+              <option value="beta">Beta</option>
+              <option value="dev">In Development</option>
+              <option value="deprecated">Deprecated</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hive Launch Post <span class="form-hint">(Opcional)</span></label>
+            <input type="text" id="f-launch-post" placeholder="https://peakd.com/@username/titulo-do-post"/>
+          </div>
+        </div>
+        
         <div class="form-group">
-          <label class="form-label">Tags <span class="form-hint">(comma-separated)</span></label>
-          <input type="text" id="f-tags" placeholder="hive, blockchain, tool"/>
+          <label class="form-label">Website URL</label>
+          <input type="url" id="f-url" placeholder="https://&hellip;"/>
         </div>
-      </div>
-    <div class="form-group">
-        <label class="form-label">Screenshot URLs <span class="form-hint">(up to 4, comma-separated links)</span></label>
-        <input type="text" id="f-screenshots-links" placeholder="https://imgur.com/image1.jpg, https://ipfs.io/ipfs/..."/>
-    </div>
-      <div class="form-actions">
-        <button class="btn btn-ghost" onclick="closeModal('submit-modal')">Cancel</button>
-        <button class="btn btn-teal" onclick="submitProject()" id="submit-btn">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-          Broadcast on Hive
-        </button>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">GitHub</label>
+            <input type="url" id="f-github" placeholder="https://github.com/&hellip;"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tags <span class="form-hint">(comma-separated)</span></label>
+            <input type="text" id="f-tags" placeholder="hive, blockchain, tool"/>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Screenshot URLs <span class="form-hint">(up to 4, comma-separated links)</span></label>
+          <input type="text" id="f-screenshots-links" placeholder="https://imgur.com/image1.jpg, https://ipfs.io/ipfs/..."/>
+        </div>
+        
+        <div class="form-actions">
+          <button class="btn btn-ghost" onclick="closeModal('submit-modal')">Cancel</button>
+          <button class="btn btn-teal" onclick="submitProject()" id="submit-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            Broadcast on Hive
+          </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Detail Modal -->
-<div class="modal-overlay" id="detail-modal">
-  <div class="modal" style="max-width:620px"><div id="detail-content"></div></div>
-</div>
+  <div class="modal-overlay" id="detail-modal">
+    <div class="modal" style="max-width:620px">
+      <div id="detail-content"></div>
+    </div>
+  </div>
 
-<!-- Lightbox -->
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-  <span class="lightbox-close">&#xD7;</span>
-  <img id="lightbox-img" src="" alt="Screenshot"/>
-</div>
+  <div class="lightbox" id="lightbox" onclick="handleLightboxOverlayClick(event)">
+    <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+    <button class="lightbox-nav-btn prev" id="lightbox-prev" onclick="lightboxPrev(event)">&#10216;</button>
+    <div class="lightbox-content">
+      <img id="lightbox-img" src="" alt="Expanded Screenshot" onclick="lightboxNext(event)"/>
+    </div>
+    <button class="lightbox-nav-btn next" id="lightbox-next" onclick="lightboxNext(event)">&#10217;</button>
+  </div>
 
-<div class="toast-container" id="toast-container"></div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
-    <script src="src/app.js"></script>
+  <div class="toast-container" id="toast-container"></div>
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
+  <script src="src/app.js"></script>
 </body>
 </html>
