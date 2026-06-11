@@ -58,7 +58,7 @@ function sanitizeTags(raw){
     .filter(Boolean).slice(0,8);
 }
 
-var VALID_CATS    =['bridge','exchange','frontend','dapp','docs','tool','wallet','game','defi','nft','search','social','lib','other'];
+var VALID_CATS    =['bet','bridge','escrow','explorer','frontend','dapp','dex','docs','tool','wallet','game','defi','nft','search','social','lib','other'];
 var VALID_STATUSES=['live','beta','dev','deprecated'];
 function inList(v,list){ return list.indexOf(v)!==-1; }
 
@@ -115,10 +115,13 @@ var pendingScreenshots=[];
 
 /* ═══════════ CATEGORY META ═══════════ */
 var CAT_META={
+  bet:   { color: '#2500cc', label: 'Bet' },
   bridge:   { color: '#2500cc', label: 'Bridge' },
-  exchange:   { color: '#b95a00', label: 'Exchange' },
+  escrow:   { color: '#ffd374', label: 'Escrow' },
+  explorer:   { color: '#ec1cff', label: 'Explorer' },
   frontend:   { color: '#dd0055', label: 'FrontEnd' },
   dapp:{color:'#00d4aa',label:'dApp'},
+  dex:   { color: '#b95a00', label: 'Dex' },
   docs:{color:'#e5ff00',label:'Docs'},
   tool:{color:'#8b5cf6',label:'Tool'},
   wallet:{color:'#f59e0b',label:'Wallet'},
@@ -875,6 +878,19 @@ document.getElementById('f-desc').addEventListener('input',function(e){
 var savedUser = localStorage.getItem('hb_user');
 if (savedUser && validUsername(savedUser)) {
   currentUser = savedUser;
+}
+
+// Registro do Service Worker para Cache de Imagens (NOVO)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('./sw.js')
+      .then(function(reg) {
+        console.log('HiveBuilds Service Worker registrado com sucesso:', reg.scope);
+      })
+      .catch(function(err) {
+        console.error('Falha ao registrar o Service Worker:', err);
+      });
+  });
 }
 
 // Atualiza a interface gráfica do topo (mostrando o avatar ou botão de login)
