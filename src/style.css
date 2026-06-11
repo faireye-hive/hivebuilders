@@ -153,25 +153,143 @@ nav{display:flex;align-items:center;gap:12px;padding:0 32px;height:64px;backgrou
 .remove-ss{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.65);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;line-height:1;opacity:0;transition:opacity .15s;cursor:pointer}
 .screenshot-thumb:hover .remove-ss{opacity:1}
 
-/* DETAIL MODAL */
-.detail-banner{height:120px;background:linear-gradient(135deg,var(--bg3),var(--bg4));display:flex;align-items:center;justify-content:center;font-size:52px;border-radius:16px 16px 0 0}
+/* DETAIL MODAL GENERAL STRUCTURE */
+.detail-banner {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 140px; 
+  border-top-left-radius: 12px;  
+  border-top-right-radius: 12px;
+  background-position: center;
+  background-size: cover;
+}
 .detail-body{padding:22px 24px}
 .detail-title{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:700;margin-bottom:4px}
 .detail-author{color:var(--muted);font-size:14px;margin-bottom:14px}
 .detail-desc{color:var(--text2);line-height:1.7;font-size:14px;margin-bottom:14px}
 .detail-links{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
 .section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
-.detail-screenshots{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:20px;scroll-snap-type:x mandatory}
-.detail-screenshots::-webkit-scrollbar{height:4px}
-.detail-screenshot{min-width:240px;height:150px;border-radius:10px;overflow:hidden;background:var(--bg3);flex-shrink:0;scroll-snap-align:start;cursor:zoom-in}
-.detail-screenshot img{width:100%;height:100%;object-fit:cover}
+
+/* MODAL SCREENSHOTS CAROUSEL */
+.screenshots-carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.detail-screenshots {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  width: 100%;
+  padding: 4px 2px;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none; 
+}
+.detail-screenshots::-webkit-scrollbar {
+  display: none; 
+}
+.detail-screenshots.grabbing {
+  cursor: grabbing;
+  user-select: none;
+}
+.detail-screenshot {
+  min-width: 260px;
+  height: 160px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg3);
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  cursor: zoom-in;
+}
+.detail-screenshot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* CAROUSEL CONTROLS */
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(26, 29, 46, 0.85); 
+  border: 1px solid var(--border);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+[data-theme="light"] .carousel-nav-btn {
+  background: rgba(255, 255, 255, 0.85);
+}
+.carousel-nav-btn:hover {
+  background: var(--teal);
+  color: var(--btn-teal-text);
+  border-color: var(--teal);
+  transform: translateY(-50%) scale(1.1);
+}
+.carousel-nav-btn.prev { left: -12px; }
+.carousel-nav-btn.next { right: -12px; }
 
 /* LIGHTBOX */
 .lightbox{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.92);align-items:center;justify-content:center}
 .lightbox.open{display:flex}
-.lightbox img{max-width:90vw;max-height:88vh;border-radius:8px;object-fit:contain}
-.lightbox-close{position:absolute;top:20px;right:24px;color:#fff;font-size:32px;line-height:1;opacity:.7;cursor:pointer}
+.lightbox-close{position:absolute;top:20px;right:24px;color:#fff;font-size:32px;line-height:1;opacity:.7;cursor:pointer;z-index:520}
 .lightbox-close:hover{opacity:1}
+
+.lightbox-content {
+  max-width: 80vw;
+  max-height: 85vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 505;
+}
+.lightbox img{max-width:100%;max-height:85vh;border-radius:8px;object-fit:contain;cursor:pointer}
+
+/* LIGHTBOX CONTROLS */
+.lightbox-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(26, 29, 46, 0.7); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  transition: all 0.2s ease;
+  z-index: 510;
+}
+.lightbox-nav-btn:hover {
+  background: var(--teal);
+  color: var(--btn-teal-text);
+  border-color: var(--teal);
+  transform: translateY(-50%) scale(1.1);
+}
+.lightbox-nav-btn.prev { left: 30px; }
+.lightbox-nav-btn.next { right: 30px; }
 
 /* TOAST */
 .toast-container{position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:10px}
@@ -190,15 +308,325 @@ footer{border-top:1px solid var(--border);padding:32px;text-align:center;font-si
 footer a{color:var(--teal)}
 footer a:hover{text-decoration:underline}
 
-/* RESPONSIVE */
-@media(max-width:768px){
-  nav{padding:0 16px;gap:8px}
-  .nav-search{display:none}
-  .hero{padding:48px 16px 40px}
-  .stats-bar{gap:24px;padding:16px}
-  .main{padding:24px 16px 60px}
-  .projects-grid{grid-template-columns:1fr}
-  .form-row{grid-template-columns:1fr}
-  .modal-overlay{align-items:flex-end;padding:0}
-  .modal{max-height:95vh;border-radius:16px 16px 0 0}
+/* LOGO MEDIA SETTINGS */
+.card-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px; 
+}
+.detail-logo-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  border: 2px solid var(--border);
+  background: var(--bg2);
+}
+.card-icon, .detail-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* RESPONSIVE & MOBILE FIXES */
+/* ==========================================================================
+   SUPORTE COMPLETO PARA RESPONSIVIDADE & MOBILE (Ajustado e Testado)
+   ========================================================================== */
+/* ==========================================================================
+   SUPORTE COMPLETO PARA RESPONSIVIDADE & MOBILE (Limpo e Otimizado)
+   ========================================================================== */
+
+/* Esconde o texto mobile por padrão no Desktop */
+.nav-submit-btn .btn-text-mobile {
+  display: none;
+}
+
+/* --- REGRAS PARA TABLETS E SMARTPHONES (Até 768px) --- */
+@media (max-width: 768px) {
+  /* 1. Ajuste da Navbar */
+  nav {
+    padding: 0 10px !important;
+    gap: 6px !important;
+    justify-content: space-between;
+  }
+  .nav-logo {
+    font-size: 15px;
+    gap: 4px;
+  }
+  .nav-logo .logo-icon {
+    font-size: 18px;
+  }
+  .nav-spacer {
+    display: none;
+  }
+  .nav-search {
+    display: none;
+  }
+  #auth-area .btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  /* 2. Filtros e Categorias (Barra deslizante horizontal) */
+  .filter-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    width: 100%;
+  }
+  .filter-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+  }
+  .filter-tags {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    padding-bottom: 8px;
+    gap: 6px;
+    scrollbar-width: none; /* Esconde no Firefox */
+  }
+  .filter-tags::-webkit-scrollbar {
+    display: none; /* Esconde no Chrome/Safari */
+  }
+  .tag-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .sort-select {
+    width: 100%;
+    padding: 10px;
+  }
+
+  /* 3. Hero e Estrutura de Grades */
+  .hero {
+    padding: 40px 16px 32px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: 28px;
+    line-height: 1.2;
+  }
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
+  }
+  .hero-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .stats-bar {
+    display: flex;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px;
+  }
+  .main {
+    padding: 20px 12px 48px;
+  }
+  .projects-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  /* 4. Ajuste dos Modais (Estilo Bottom Sheet) */
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 88vh;
+    border-radius: 20px 20px 0 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .modal-body {
+    padding: 16px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+    padding-top: 8px;
+  }
+  .form-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 5. Detalhes do Post (Detail Modal) */
+  .detail-body {
+    padding: 16px;
+  }
+  .detail-title {
+    font-size: 18px;
+  }
+  .detail-logo-img {
+    width: 64px;
+    height: 64px;
+  }
+  .detail-links {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .detail-links .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 6. Carrossel de Screenshots dentro do detalhe do Post (Corrigido) */
+  .screenshots-carousel-wrapper {
+    position: relative;
+    width: 100%;
+    margin: 16px 0;
+  }
+  .detail-screenshots {
+    display: flex !important;
+    gap: 10px !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 8px !important;
+    width: 100% !important;
+  }
+  /* Remove o bloqueio de sumir com a barra no mobile se preferir ver o indicador, 
+     ou mantenha para esconder a barra de rolagem original */
+  .detail-screenshots::-webkit-scrollbar {
+    height: 4px !important;
+    display: block !important; 
+  }
+  .detail-screenshots::-webkit-scrollbar-thumb {
+    background: var(--bg4);
+    border-radius: 4px;
+  }
+  .detail-screenshot {
+    /* Faz cada screenshot ocupar 80% da tela do celular, deixando uma fresta da próxima imagem visível */
+    flex: 0 0 80% !important;
+    min-width: 80% !important; 
+    scroll-snap-align: start !important;
+    height: 180px !important; /* Mantém uma altura fixa proporcional para não distorcer */
+  }
+  .detail-screenshot img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+  }
+  /* Oculta as setinhas rígidas de navegação "<" e ">" no celular */
+  .carousel-nav-btn {
+    display: none !important;
+  }
+
+  /* 7. Lightbox de Imagem Expandida (Clique na Screenshot) */
+  .lightbox {
+    padding: 12px !important;
+  }
+  .lightbox-content {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 80vh !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .lightbox-img, .lightbox img {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 75vh !important;
+    object-fit: contain !important; /* Garante que a imagem inteira apareça sem cortes */
+    border-radius: 8px;
+  }
+  .lightbox-close {
+    top: 16px !important;
+    right: 16px !important;
+    font-size: 32px !important;
+  }
+  .lightbox-nav-btn {
+    width: 40px !important;
+    height: 40px !important;
+    font-size: 18px !important;
+  }
+  .lightbox-nav-btn.prev { left: 10px !important; }
+  .lightbox-nav-btn.next { right: 10px !important; }
+
+
+}
+
+/* --- AJUSTE CRÍTICO DE ENCAIXE PARA CELULARES ULTRA-COMPACTOS (Até 440px) --- */
+/* --- AJUSTE CRÍTICO DE ENCAIXE PARA CELULARES (Até 440px - Ex: Samsung S25 Ultra) --- */
+@media (max-width: 440px) {
+  /* 1. Transforma o botão de submit em apenas o sinal de "+" */
+  .nav-submit-btn .btn-text-desktop {
+    display: none !important;
+  }
+  .nav-submit-btn .btn-text-mobile {
+    display: inline-block !important;
+    font-size: 16px !important; /* Deixa o sinal de + nítido */
+    font-weight: bold !important;
+  }
+  .nav-submit-btn svg {
+    display: none !important; /* Esconde o ícone de linha do SVG para usar só o caractere + */
+  }
+  .nav-submit-btn {
+    padding: 6px 12px !important; /* Deixa o botão compacto e ajustado */
+    min-width: 32px;
+    justify-content: center;
+  }
+  
+  /* 2. Encolhe o botão de login se o usuário estiver deslogado */
+  #search-input, .login-text {
+    display: none !important;
+  }
+  #auth-area .btn-ghost {
+    padding: 8px !important;
+    border-radius: 50% !important;
+  }
+
+  /* 3. Blindagem da User Badge para não estourar a viewport */
+  #auth-area .user-badge {
+    max-width: 120px !important; /* Limita estritamente o tamanho máximo do bloco */
+    overflow: hidden !important;
+    gap: 4px !important;
+    padding: 4px 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    flex-shrink: 0 !important; /* Impede que o flexbox esmague a badge além do limite */
+  }
+
+  /* 4. Força o corte do nome do usuário com reticências (...) caso seja longo */
+  #auth-area .user-name {
+    max-width: 60px !important; /* Define uma largura máxima segura para o texto do nick */
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 11px !important;
+    display: inline-block !important;
+  }
+
+  /* Reduz levemente o avatar para ganhar mais alguns pixels */
+  #auth-area .user-avatar, 
+  #auth-area .user-avatar img {
+    width: 20px !important;
+    height: 20px !important;
+  }
 }
