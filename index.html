@@ -3,10 +3,55 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HiveBuilds — Projects on the Hive Blockchain</title>
+  
+  <title>HiveBuilds — Discover Projects Built on the Hive Blockchain</title>
+  <meta name="description" content="An open directory of decentralized apps, tools, and libraries created by the Hive community. Explore, submit, and verify projects on-chain."/>
+  <meta name="keywords" content="Hive, Hive Blockchain, Web3, dApps, Crypto Directory, Hive Ecosystem, Custom JSON, Hive Keychain"/>
+  <meta name="robots" content="index, follow"/>
+  <meta name="author" content="HiveBuilds Community"/>
+  <link rel="canonical" href="https://faireye-hive.github.io/hivebuilders/"/>
+
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://faireye-hive.github.io/hivebuilders/"/>
+  <meta property="og:title" content="HiveBuilds — Projects on the Hive Blockchain"/>
+  <meta property="og:description" content="Explore an open, on-chain directory of apps, tools, and libraries built by the Hive community."/>
+  <meta property="og:image" content="https://faireye-hive.github.io/hivebuilders/assets/og-banner.png"/>
+  <meta property="og:site_name" content="HiveBuilds"/>
+
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:url" content="https://faireye-hive.github.io/hivebuilders/"/>
+  <meta name="twitter:title" content="HiveBuilds — Projects on the Hive Blockchain"/>
+  <meta name="twitter:description" content="Explore an open, on-chain directory of apps, tools, and libraries built by the Hive community."/>
+  <meta name="twitter:image" content="https://faireye-hive.github.io/hivebuilders/assets/og-banner.png"/>
+
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐝</text></svg>"/>
+
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self' https://cdnjs.cloudflare.com;
+    script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    connect-src 'self' https://hafsql-api.mahdiyari.info https://api.hive.blog https://api.hivekings.com https://anyx.io;
+    img-src 'self' data: 
+      https://images.hive.blog 
+      https://i.ecency.com
+      https://i.imgur.com 
+      https://imgur.com 
+      https://ipfs.io 
+      https://pinata.cloud 
+      https://cloudflare-ipfs.com 
+      https://3speak.tv 
+      https://img.3speak.tv
+      https://files.peakd.com
+      https://hivesearcher.com
+      https://nftshowroom.com
+      https://v4v.app
+      https://img.leopedia.io;
+  ">
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" crossorigin="anonymous" referrerpolicy="no-referrer"/>
   <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
@@ -57,10 +102,13 @@
         <span class="filter-label">Filter</span>
         <div class="filter-tags" id="filter-tags">
           <button class="tag-btn active" data-cat="all">All</button>
+          <button class="tag-btn" data-cat="bet">Bet</button>
           <button class="tag-btn" data-cat="bridge">Bridge</button>
-          <button class="tag-btn" data-cat="exchange">Exchange</button>
+          <button class="tag-btn" data-cat="escrow">Escrow</button>
+          <button class="tag-btn" data-cat="explorer">Explorer</button>
           <button class="tag-btn" data-cat="frontend">FrontEnd</button>
           <button class="tag-btn" data-cat="dapp">dApp</button>
+          <button class="tag-btn" data-cat="dex">Dex</button>
           <button class="tag-btn" data-cat="docs">Docs</button>
           <button class="tag-btn" data-cat="tool">Tool</button>
           <button class="tag-btn" data-cat="wallet">Wallet</button>
@@ -168,10 +216,13 @@
             <label class="form-label">Category *</label>
             <select id="f-cat">
               <option value="">Select category&hellip;</option>
+              <option value="bet">Bet</option>
               <option value="bridge">Bridge</option>
-              <option value="exchange">Exchange</option>
+              <option value="escrow">Escrow</option>
+              <option value="explorer">Explorer</option>
               <option value="frontend">FrontEnd</option>
               <option value="dapp">dApp</option>
+              <option value="dex">Dex</option>
               <option value="docs">Docs</option>
               <option value="tool">Tool</option>
               <option value="wallet">Wallet</option>
@@ -248,7 +299,12 @@
 
   <div class="toast-container" id="toast-container"></div>
   
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
+  <script 
+    src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js" 
+    integrity="sha512-9+ilAOeXY8qy2bw/h51MmliNNHvdyhTpLIlqDmVpD26z8VjVJsUJtk5rhbDIUvYiD+EpGoAu0xTa7MhZohFQjA==" 
+    crossorigin="anonymous" 
+    referrerpolicy="no-referrer">
+  </script>
   <script src="src/app.js"></script>
 </body>
 </html>
