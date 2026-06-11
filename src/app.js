@@ -22,7 +22,6 @@ function safeUrl(raw){
     if(!s)return '';
     var u=new URL(s);
     if(u.protocol!=='https:'&&u.protocol!=='http:')return '';
-    // Block known dangerous hostnames (very basic)
     return u.href;
   }catch(e){return '';}
 }
@@ -36,16 +35,13 @@ function validUsername(u){
 function safeEmoji(raw){
   var s=String(raw||'').trim();
   if(!s)return '\uD83D\uDD37';
-  // Remove plain ASCII that isn't emoji
   var emojiOnly=s.replace(/[^\p{Emoji}]/gu,'');
   if(!emojiOnly)return '\uD83D\uDD37';
-  // Return first grapheme cluster (up to 2 codepoints)
   var chars=Array.from(emojiOnly);
   return chars.slice(0,2).join('');
 }
 
 // Strip HTML tags and control chars, trim, enforce max length
-// Higienização robusta usando DOMPurify contra injeções vindas da blockchain
 function sanitizeText(raw, maxLen){
   maxLen = maxLen || 500;
   var stringBruta = String(raw == null ? '' : raw).trim();
@@ -62,7 +58,7 @@ function sanitizeTags(raw){
     .filter(Boolean).slice(0,8);
 }
 
-var VALID_CATS    =['frontend','dapp','tool','wallet','game','defi','nft','social','lib','other'];
+var VALID_CATS    =['bridge','exchange','frontend','dapp','docs','tool','wallet','game','defi','nft','search','social','lib','other'];
 var VALID_STATUSES=['live','beta','dev','deprecated'];
 function inList(v,list){ return list.indexOf(v)!==-1; }
 
@@ -119,13 +115,17 @@ var pendingScreenshots=[];
 
 /* ═══════════ CATEGORY META ═══════════ */
 var CAT_META={
-  frontend:   { color: '#00d4aa', label: 'FrontEnd' },
+  bridge:   { color: '#2500cc', label: 'Bridge' },
+  exchange:   { color: '#b95a00', label: 'Exchange' },
+  frontend:   { color: '#dd0055', label: 'FrontEnd' },
   dapp:{color:'#00d4aa',label:'dApp'},
+  docs:{color:'#e5ff00',label:'Docs'},
   tool:{color:'#8b5cf6',label:'Tool'},
   wallet:{color:'#f59e0b',label:'Wallet'},
   game:{color:'#e84142',label:'Game'},
   defi:{color:'#10b981',label:'DeFi'},
   nft:{color:'#ec4899',label:'NFT'},
+  search:{color:'#3b82f6',label:'Search'},
   social:{color:'#3b82f6',label:'Social'},
   lib:{color:'#6366f1',label:'Library'},
   other:{color:'#64748b',label:'Other'}
@@ -159,20 +159,17 @@ function parseProjectRow(row){
     var url     =safeUrl(p.url||p.website||'');
     var github  =safeUrl(p.github||'');
     var tags    =sanitizeTags(Array.isArray(p.tags)?p.tags.join(','):(p.tags||''));
-    var icon    =safeEmoji(p.icon||'');
+    var logo    = safeUrl(p.logo || p.icon || '');
+    var launchPost = safeUrl(p.launch_post || p.launchPost || '');
 
-    // Screenshots: only accept data:image/ URLs stored on-chain
-    // Screenshots: agora aceita links de imagens da internet validados e seguros
     var screenshots = [];
     if (Array.isArray(p.screenshots)) {
       screenshots = p.screenshots
-        .map(function(s) { return safeUrl(s); }) // Valida se é uma URL http/https válida
-        .filter(Boolean)                         // Remove links inválidos ou em branco
-        .slice(0, 4);                            // Mantém o limite de até 4 imagens
+        .map(function(s) { return safeUrl(s); })
+        .filter(Boolean)
+        .slice(0, 4);
     }
 
-    // Author comes from the indexer's account field (trusted) — sanitize anyway
-   // Extrai o autor de dentro do array required_posting_auths ou required_auths
     var rawAuthor = 'unknown';
     if (row.required_posting_auths && row.required_posting_auths.length > 0) {
       rawAuthor = row.required_posting_auths[0];
@@ -191,7 +188,7 @@ function parseProjectRow(row){
       block:parseInt(row.block_num||row.block||0,10)||0,
       timestamp:row.timestamp||null,
       author:author,name:name,description:desc,fullDesc:fullDesc,
-      icon:icon,category:cat,status:status,url:url,github:github,
+      logo:logo,launchPost:launchPost,category:cat,status:status,url:url,github:github,
       tags:tags,screenshots:screenshots
     };
   }catch(e){ return null; }
@@ -247,7 +244,6 @@ function renderPage(page){
     return;
   }
 
-  // Build cards using DOM — no innerHTML with user data
   grid.innerHTML='';
   slice.forEach(function(p,i){
     var card=buildCard(p,allProjects.indexOf(p));
@@ -291,10 +287,19 @@ function buildCard(p,idx){
   header.className='card-header';
   var iconEl=document.createElement('div');
   iconEl.className='card-icon';
-  iconEl.textContent=p.icon;
+  if(p.logo){
+    var logoImg = document.createElement('img');
+    logoImg.src = p.logo;
+    logoImg.alt = p.name;
+    logoImg.onerror = function(){ iconEl.textContent = '📦'; };
+    iconEl.appendChild(logoImg);
+  } else {
+    iconEl.textContent = '📦';
+  }
   header.appendChild(iconEl);
   var meta=document.createElement('div');
   meta.className='card-meta';
+
   var titleEl=document.createElement('div');
   titleEl.className='card-title';
   titleEl.title=p.name;
@@ -314,7 +319,7 @@ function buildCard(p,idx){
   header.appendChild(meta);
   body.appendChild(header);
 
-  // Screenshots strip
+  // Screenshots strip (Mantido padrão, estável e estático nos cartões)
   if(sc.length){
     var strip=document.createElement('div');
     strip.className='card-screenshots';
@@ -325,7 +330,7 @@ function buildCard(p,idx){
       img.loading='lazy';
       img.alt='Screenshot';
       img.onerror=function(){ wrap.style.display='none'; };
-      img.src=src; // already validated as data:image/ in parseProjectRow
+      img.src=src;
       wrap.appendChild(img);
       strip.appendChild(wrap);
     });
@@ -403,11 +408,34 @@ function openDetail(p){
   var el=document.getElementById('detail-content');
   el.innerHTML='';
 
-  // Banner
+  // Banner Inteligente com Imagem de Fundo (Blur)
   var banner=document.createElement('div');
   banner.className='detail-banner';
-  banner.style.background='linear-gradient(135deg,'+cat.color+'22,'+cat.color+'44)';
-  banner.textContent=p.icon;
+
+  if(p.screenshots && p.screenshots.length > 0) {
+    banner.style.backgroundImage = 'linear-gradient(to bottom, rgba(0,0,0,0.2), rgba(0,0,0,0.6)), url("' + p.screenshots[0] + '")';
+    banner.style.backgroundSize = 'cover';
+    banner.style.backgroundPosition = 'center';
+    banner.style.backdropFilter = 'blur(8px)';
+  } else {
+    banner.style.background='linear-gradient(135deg,'+cat.color+'22,'+cat.color+'44)';
+  }
+
+  if(p.logo){
+    var detLogo = document.createElement('img');
+    detLogo.src = p.logo;
+    detLogo.className = 'detail-logo-img';
+    detLogo.onerror = function(){
+      banner.style.background = 'linear-gradient(135deg,'+cat.color+'22,'+cat.color+'44)';
+      banner.innerHTML = '<span style="font-size: 32px;">📦</span>';
+    };
+    banner.appendChild(detLogo);
+  } else {
+    var fallback = document.createElement('span');
+    fallback.style.fontSize = '32px';
+    fallback.textContent = '📦';
+    banner.appendChild(fallback);
+  }
   el.appendChild(banner);
 
   var body=document.createElement('div');
@@ -441,29 +469,86 @@ function openDetail(p){
   var d=document.createElement('div'); d.className='detail-desc'; d.textContent=p.description; body.appendChild(d);
   if(p.fullDesc){ var fd=document.createElement('div'); fd.className='detail-desc'; fd.textContent=p.fullDesc; body.appendChild(fd); }
 
-  // Screenshots
-  if(p.screenshots&&p.screenshots.length){
-    var ssTitle=document.createElement('div'); ssTitle.className='section-title'; ssTitle.style.marginTop='18px';
-    ssTitle.textContent='Screenshots'; body.appendChild(ssTitle);
-    var strip=document.createElement('div'); strip.className='detail-screenshots';
-    p.screenshots.forEach(function(src,i){
-      var w=document.createElement('div'); w.className='detail-screenshot';
-      var img=document.createElement('img'); img.loading='lazy'; img.alt='Screenshot '+(i+1);
-      img.onerror=function(){ w.style.display='none'; };
-      img.onclick=function(){ openLightbox(src); };
-      img.src=src;
-      w.appendChild(img); strip.appendChild(w);
+  // Screenshots - COM A FUNÇÃO DRAG ATIVA EXCLUSIVAMENTE AQUI
+// ═══════════ TRECHO ATUALIZADO DENTRO DE openDetail(p) ═══════════
+  if(p.screenshots && p.screenshots.length){
+    var ssTitle = document.createElement('div'); 
+    ssTitle.className = 'section-title'; 
+    ssTitle.style.marginTop = '18px';
+    ssTitle.textContent = 'Screenshots'; 
+    body.appendChild(ssTitle);
+
+    // 1. Criamos um container para envelopar a lista e os botões de seta
+    var wrapper = document.createElement('div');
+    wrapper.className = 'screenshots-carousel-wrapper';
+
+    // 2. Criamos a lista que rola de fato
+    var strip = document.createElement('div'); 
+    strip.className = 'detail-screenshots';
+
+    // Popular a lista com as imagens
+    p.screenshots.forEach(function(src, i){
+      var w = document.createElement('div'); 
+      w.className = 'detail-screenshot';
+      var img = document.createElement('img'); 
+      img.loading = 'lazy'; 
+      img.alt = 'Screenshot ' + (i + 1);
+      img.onerror = function(){ w.style.display = 'none'; };
+      img.onclick = function(){ openLightbox(src, p.screenshots); };
+      img.src = src;
+      
+      // Evita o travamento prevenindo o comportamento fantasma de arrastar nativo do browser
+      img.addEventListener('dragstart', function(e) { e.preventDefault(); });
+      
+      w.appendChild(img); 
+      strip.appendChild(w);
     });
-    body.appendChild(strip);
+
+    wrapper.appendChild(strip);
+
+    // 3. Adicionamos os botões de navegação apenas se houver mais de uma imagem
+    if(p.screenshots.length > 1) {
+      var btnPrev = document.createElement('button');
+      btnPrev.className = 'carousel-nav-btn prev';
+      btnPrev.innerHTML = '&#10216;'; // Sinal de <
+      btnPrev.title = 'Previous';
+      btnPrev.onclick = function() {
+        // Rola para a esquerda baseado na largura de um card de screenshot + gap
+        strip.scrollBy({ left: -272, behavior: 'smooth' });
+      };
+
+      var btnNext = document.createElement('button');
+      btnNext.className = 'carousel-nav-btn next';
+      btnNext.innerHTML = '&#10217;'; // Sinal de >
+      btnNext.title = 'Next';
+      btnNext.onclick = function() {
+        // Rola para a direita baseado na largura de um card de screenshot + gap
+        strip.scrollBy({ left: 272, behavior: 'smooth' });
+      };
+
+      wrapper.appendChild(btnPrev);
+      wrapper.appendChild(btnNext);
+    }
+
+    body.appendChild(wrapper);
   }
+  // ═════════════════════════════════════════════════════════════════
 
   // Links
   var lk=document.createElement('div'); lk.className='detail-links'; lk.style.marginTop='14px';
-  if(p.url){ var wa=document.createElement('a'); wa.href=p.url; wa.target='_blank'; wa.rel='noopener noreferrer'; wa.className='btn btn-teal btn-sm'; wa.textContent='\uD83C\uDF10 Website'; lk.appendChild(wa); }
-  if(p.github){ var ga=document.createElement('a'); ga.href=p.github; ga.target='_blank'; ga.rel='noopener noreferrer'; ga.className='btn btn-ghost btn-sm'; ga.textContent='\u2B1B GitHub'; lk.appendChild(ga); }
+  if(p.url){ var wa=document.createElement('a'); wa.href=p.url; wa.target='_blank'; wa.rel='noopener noreferrer'; wa.className='btn btn-teal btn-sm'; wa.textContent='🌐 Website'; lk.appendChild(wa); }
+  if(p.github){ var ga=document.createElement('a'); ga.href=p.github; ga.target='_blank'; ga.rel='noopener noreferrer'; ga.className='btn btn-ghost btn-sm'; ga.textContent='⬛ GitHub'; lk.appendChild(ga); }
+
+  if(p.launchPost){
+    var pa=document.createElement('a');
+    pa.href=p.launchPost; pa.target='_blank'; pa.rel='noopener noreferrer';
+    pa.className='btn btn-ghost btn-sm'; pa.style.borderColor='var(--purple)'; pa.style.color='var(--purple)';
+    pa.textContent='📰 Launch Post';
+    lk.appendChild(pa);
+  }
   body.appendChild(lk);
 
-  // On-chain info (no trx_id — HAFSQL doesn't return it)
+  // On-chain info
   var ct=document.createElement('div'); ct.className='section-title'; ct.style.marginTop='18px'; ct.textContent='On-chain info'; body.appendChild(ct);
   var ci=document.createElement('div'); ci.style.cssText='font-size:12px;color:var(--muted)';
   ci.textContent='Block: '+p.block; body.appendChild(ci);
@@ -473,14 +558,60 @@ function openDetail(p){
 }
 
 /* ═══════════ LIGHTBOX ═══════════ */
-function openLightbox(src){
-  if(typeof src!=='string' || !safeUrl(src)) return; // Apenas garante que é uma URL válida
-  document.getElementById('lightbox-img').src=src;
+/* ═══════════ LIGHTBOX ═══════════ */
+var lightboxImages = []; // Guarda o array de screenshots do projeto ativo
+var lightboxIndex = 0;   // Guarda o índice da imagem exibida no momento
+
+function openLightbox(src, allScreenshots) {
+  if (typeof src !== 'string' || !safeUrl(src)) return;
+  
+  // Salva o contexto das screenshots para permitir navegação
+  lightboxImages = Array.isArray(allScreenshots) ? allScreenshots : [src];
+  lightboxIndex = lightboxImages.indexOf(src);
+  if (lightboxIndex === -1) lightboxIndex = 0;
+
+  updateLightboxContent();
   document.getElementById('lightbox').classList.add('open');
 }
-function closeLightbox(){
+
+function updateLightboxContent() {
+  var currentSrc = lightboxImages[lightboxIndex];
+  document.getElementById('lightbox-img').src = currentSrc;
+
+  // Oculta ou exibe os botões se houver apenas 1 imagem
+  var showNav = lightboxImages.length > 1;
+  document.getElementById('lightbox-prev').style.display = showNav ? 'flex' : 'none';
+  document.getElementById('lightbox-next').style.display = showNav ? 'flex' : 'none';
+}
+
+function lightboxNext(e) {
+  if (e) e.stopPropagation(); // Impede fechar o modal ao clicar na imagem ou no botão
+  if (lightboxImages.length <= 1) return;
+
+  lightboxIndex = (lightboxIndex + 1) % lightboxImages.length; // Volta pro início se for a última
+  updateLightboxContent();
+}
+
+function lightboxPrev(e) {
+  if (e) e.stopPropagation(); // Impede fechar o modal ao clicar no botão
+  if (lightboxImages.length <= 1) return;
+
+  lightboxIndex = (lightboxIndex - 1 + lightboxImages.length) % lightboxImages.length; // Vai pra última se retroceder da primeira
+  updateLightboxContent();
+}
+
+function handleLightboxOverlayClick(e) {
+  // Só fecha se o clique foi diretamente no fundo escuro (overlay)
+  if (e.target === document.getElementById('lightbox')) {
+    closeLightbox();
+  }
+}
+
+function closeLightbox() {
   document.getElementById('lightbox').classList.remove('open');
-  document.getElementById('lightbox-img').src='';
+  document.getElementById('lightbox-img').src = '';
+  lightboxImages = [];
+  lightboxIndex = 0;
 }
 
 /* ═══════════ AUTH ═══════════ */
@@ -497,7 +628,7 @@ function doLogin(){
   if(typeof window.hive_keychain==='undefined'){ showToast('Hive Keychain not found','error'); return; }
   hive_keychain.requestSignBuffer(raw,'HiveBuilds login '+Date.now(),'Posting',function(resp){
     if(resp.success){
-      currentUser=raw; updateAuthUI(); closeModal('login-modal');
+      currentUser=raw; localStorage.setItem('hb_user', raw); updateAuthUI(); closeModal('login-modal');
       showToast('Welcome, @'+raw+'! \uD83D\uDC4B','success');
     } else {
       showToast(resp.message||'Login cancelled','error');
@@ -505,29 +636,99 @@ function doLogin(){
   });
 }
 
-function logout(){ currentUser=null; updateAuthUI(); showToast('Logged out','info'); }
+function logout(){ currentUser=null; localStorage.removeItem('hb_user'); updateAuthUI(); showToast('Logged out','info'); }
 
 function updateAuthUI(){
   var area=document.getElementById('auth-area');
   area.innerHTML='';
   if(currentUser){
-    var wrap=document.createElement('div'); wrap.style.cssText='display:flex;align-items:center;gap:10px';
-    var sb=document.createElement('button'); sb.className='btn btn-teal btn-sm'; sb.textContent='+ Submit Project'; sb.onclick=handleSubmitClick;
+    var wrap=document.createElement('div'); 
+    wrap.style.cssText='display:flex;align-items:center;gap:10px';
+    
+    // Criamos o botão com a estrutura de textos chaveáveis por CSS
+    var sb=document.createElement('button'); 
+    sb.className='btn btn-teal btn-sm nav-submit-btn'; 
+    sb.title='Submit Project'; 
+    sb.onclick=handleSubmitClick;
+    
+    // Ícone SVG + textos para Desktop e Mobile
+    sb.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' +
+                   '<span class="btn-text-desktop"> Submit Project</span>' +
+                   '<span class="btn-text-mobile"> +</span>';
     wrap.appendChild(sb);
-    var badge=document.createElement('div'); badge.className='user-badge';
-    var av=document.createElement('div'); av.className='avatar';
-    var img=document.createElement('img'); img.src='https://images.hive.blog/u/'+currentUser+'/avatar/small'; img.alt=currentUser;
-    img.onerror=function(){ av.innerHTML=''; av.textContent=currentUser.slice(0,2).toUpperCase(); };
-    av.appendChild(img); badge.appendChild(av);
-    badge.appendChild(document.createTextNode('@'+currentUser));
-    var lb=document.createElement('button'); lb.textContent='\xD7'; lb.title='Logout';
-    lb.style.cssText='color:var(--muted);font-size:18px;line-height:1;margin-left:4px'; lb.onclick=logout;
-    badge.appendChild(lb); wrap.appendChild(badge); area.appendChild(wrap);
+    
+    // Badge do Usuário
+    var badge=document.createElement('div'); 
+    badge.className='user-badge';
+    
+    var av=document.createElement('div'); 
+    av.className='avatar user-avatar'; // adicionada a classe user-avatar para controle do tamanho
+    
+    var img=document.createElement('img'); 
+    img.src='https://images.hive.blog/u/'+currentUser+'/avatar/small'; 
+    img.alt=currentUser;
+    img.onerror=function(){ 
+      av.innerHTML=''; 
+      av.textContent=currentUser.slice(0,2).toUpperCase(); 
+    };
+    av.appendChild(img); 
+    badge.appendChild(av);
+    
+    // Injetamos o nome envolvido em uma tag span gerenciável
+    var nameSpan = document.createElement('span');
+    nameSpan.className = 'user-name';
+    nameSpan.textContent = '@' + currentUser;
+    badge.appendChild(nameSpan);
+    
+    // Botão de Logout personalizado
+    var lb=document.createElement('button'); 
+    lb.textContent='\xD7'; 
+    lb.title='Logout';
+    lb.style.cssText='color:var(--muted);font-size:18px;line-height:1;margin-left:4px;cursor:pointer;background:none;border:none;padding:0 2px'; 
+    lb.onclick=logout;
+    
+    badge.appendChild(lb); 
+    wrap.appendChild(badge); 
+    area.appendChild(wrap);
   } else {
-    var btn=document.createElement('button'); btn.className='btn btn-ghost'; btn.onclick=openLoginModal;
-    btn.innerHTML='<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Login with Keychain';
+    var btn=document.createElement('button'); 
+    btn.className='btn btn-ghost login-btn'; 
+    btn.onclick=openLoginModal;
+    btn.innerHTML='<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> <span class="login-text">Login with Keychain</span>';
     area.appendChild(btn);
   }
+}
+
+// Função global para ativar o efeito "Clique e Arraste"
+function enableDragToScroll(container) {
+  var isDown = false;
+  var startX;
+  var scrollLeft;
+
+  container.addEventListener('mousedown', function(e) {
+    isDown = true;
+    container.classList.add('grabbing');
+    startX = e.pageX - container.offsetLeft;
+    scrollLeft = container.scrollLeft;
+  });
+
+  container.addEventListener('mouseleave', function() {
+    isDown = false;
+    container.classList.remove('grabbing');
+  });
+
+  container.addEventListener('mouseup', function() {
+    isDown = false;
+    container.classList.remove('grabbing');
+  });
+
+  container.addEventListener('mousemove', function(e) {
+    if(!isDown) return;
+    e.preventDefault();
+    var x = e.pageX - container.offsetLeft;
+    var walk = (x - startX) * 1.5;
+    container.scrollLeft = scrollLeft - walk;
+  });
 }
 
 /* ═══════════ SUBMIT ═══════════ */
@@ -537,7 +738,6 @@ function handleSubmitClick(){
 }
 
 function submitProject(){
-    // Pega o texto do input, divide pelas vírgulas, valida cada link e limpa espaços em branco
   var screenshotsLinks = String(document.getElementById('f-screenshots-links').value || '')
     .split(',')
     .map(function(s) { return safeUrl(s.trim()); })
@@ -552,12 +752,13 @@ function submitProject(){
   var fullDesc=sanitizeText(document.getElementById('f-fulldesc').value,800);
   var rawCat  =document.getElementById('f-cat').value;
   var rawSt   =document.getElementById('f-status').value;
-  var icon    =safeEmoji(document.getElementById('f-icon').value);
   var url     =safeUrl(document.getElementById('f-url').value.trim());
   var github  =safeUrl(document.getElementById('f-github').value.trim());
   var tags    =sanitizeTags(document.getElementById('f-tags').value);
   var category=inList(rawCat,VALID_CATS)?rawCat:'';
   var status  =inList(rawSt,VALID_STATUSES)?rawSt:'live';
+  var logo       = safeUrl(document.getElementById('f-logo').value.trim());
+  var launchPost = safeUrl(document.getElementById('f-launch-post').value.trim());
 
   if(!name)    { showFieldError(errEl,'Project name is required.'); return; }
   if(!desc)    { showFieldError(errEl,'Short description is required.'); return; }
@@ -566,9 +767,8 @@ function submitProject(){
 
   var payload=JSON.stringify({
     name:name, description:desc, full_description:fullDesc,
-    icon:icon, category:category, status:status,
+    logo:logo, launch_post:launchPost, category:category, status:status,
     url:url, github:github, tags:tags,
-    //screenshots:pendingScreenshots.map(function(s){ return s.dataUrl; }),
     screenshots: screenshotsLinks,
     app:'hivebuilds/1.0'
   });
@@ -586,7 +786,7 @@ function submitProject(){
       var np={
         id:'pending_'+Date.now(), block:0, timestamp:new Date().toISOString(),
         author:currentUser, name:name, description:desc, fullDesc:fullDesc,
-        icon:icon, category:category, status:status, url:url, github:github, tags:tags,
+        logo:logo, launchPost:launchPost, category:category, status:status, url:url, github:github, tags:tags,
         screenshots: screenshotsLinks
       };
       pendingScreenshots=[];
@@ -608,7 +808,7 @@ function showFieldError(el,msg){
 }
 
 function clearSubmitForm(){
-  ['f-name','f-desc','f-fulldesc','f-icon','f-url','f-github','f-tags','f-screenshots-links'].forEach(function(id){ document.getElementById(id).value=''; });
+  ['f-name','f-desc','f-fulldesc','f-logo','f-launch-post','f-url','f-github','f-tags','f-screenshots-links'].forEach(function(id){ document.getElementById(id).value=''; });
   document.getElementById('f-cat').value='';
   document.getElementById('f-status').value='live';
   document.getElementById('submit-error').style.display='none';
@@ -649,7 +849,7 @@ function showToast(msg,type){
   var c=document.getElementById('toast-container');
   var el=document.createElement('div'); el.className='toast '+type;
   var icon=document.createElement('span'); icon.textContent=icons[type];
-  var text=document.createElement('span'); text.textContent=msg; // textContent, never innerHTML
+  var text=document.createElement('span'); text.textContent=msg;
   el.appendChild(icon); el.appendChild(text); c.appendChild(el);
   setTimeout(function(){ el.style.transition='opacity .3s'; el.style.opacity='0'; setTimeout(function(){ el.remove(); },300); },3500);
 }
@@ -671,10 +871,16 @@ document.getElementById('f-desc').addEventListener('input',function(e){
 });
 
 /* ═══════════ INIT ═══════════ */
-//setupScreenshotUpload();
+// Verifica se existe um usuário salvo no localStorage antes de carregar o app
+var savedUser = localStorage.getItem('hb_user');
+if (savedUser && validUsername(savedUser)) {
+  currentUser = savedUser;
+}
+
+// Atualiza a interface gráfica do topo (mostrando o avatar ou botão de login)
+updateAuthUI();
 loadProjects();
 
-// Expose globals used by inline HTML handlers
 window.toggleTheme=toggleTheme;
 window.openLoginModal=openLoginModal;
 window.handleSubmitClick=handleSubmitClick;
@@ -684,5 +890,8 @@ window.submitProject=submitProject;
 window.loadNextPage=loadNextPage;
 window.loadPrevPage=loadPrevPage;
 window.closeLightbox=closeLightbox;
+window.lightboxNext = lightboxNext;
+window.lightboxPrev = lightboxPrev;
+window.handleLightboxOverlayClick = handleLightboxOverlayClick;
 
 })();
