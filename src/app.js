@@ -3,7 +3,7 @@
 
 /* ═══════════ CONFIG ═══════════ */
 var CUSTOM_JSON_ID = 'hivebuilds_silva'; // Change to your own ID
-var HAFSQL_BASE    = 'https://hafsql-api.mahdiyari.info/operations/custom_json';
+var HAFSQL_BASE    = 'https://rpc.mahdiyari.info/hafsql/operations/custom_json';
 var ITEMS_PER_PAGE = 20;
 
 /* ═══════════ SECURITY HELPERS ═══════════ */
