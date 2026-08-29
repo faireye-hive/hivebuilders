@@ -58,7 +58,7 @@ function sanitizeTags(raw){
     .filter(Boolean).slice(0,8);
 }
 
-var VALID_CATS    =['bet','bridge','escrow','explorer','frontend','dapp','dex','docs','tool','wallet','game','defi','nft','search','social','lib','other'];
+var VALID_CATS    =['bet','bridge','dapp','defi','dex','docs','escrow','explorer','frontend','game','tool','wallet','nft','stats','search','social','lib','other'];
 var VALID_STATUSES=['live','beta','dev','deprecated'];
 function inList(v,list){ return list.indexOf(v)!==-1; }
 
@@ -128,6 +128,7 @@ var CAT_META={
   game:{color:'#e84142',label:'Game'},
   defi:{color:'#10b981',label:'DeFi'},
   nft:{color:'#ec4899',label:'NFT'},
+  stats:{color:'#64748b',label:'Stats'},
   search:{color:'#3b82f6',label:'Search'},
   social:{color:'#3b82f6',label:'Social'},
   lib:{color:'#6366f1',label:'Library'},
